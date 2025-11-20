@@ -116,8 +116,19 @@ def run_monte_carlo_simulation(mitigation_weight=0.0, n_iterations=N_ITER):
             loss_category = ROLE_MAPPING.get(role, 'Employees (full-time)')
             min_loss = loss_dict[loss_category]['min']
             max_loss = loss_dict[loss_category]['max']
-            
+
+            # Taking the geometric mean of min and max losses
+            # for lognormal  median = exp(mean)
+            # if mean = (log(min) + log(max)) / 2, then median = exp((log(min) + log(max)) / 2) => sqrt(min X max)
+            # Which gives us the geometric mean.
+            # /2 because we need lognormal to be symmetric between min and max
             log_mean = (np.log(min_loss) + np.log(max_loss)) / 2
+            
+            # https://www.geeksforgeeks.org/maths/68-95-99-rule/ 
+            # mean = (log(min) + log(max)) / 2
+            # in a normal distribution, 95% of the area lies within 2*stdev
+            # so log(max) - mean = 2*stdev and mean - log(min) = 2*stdev
+            # solving math we get stddev = (log(max) - log(min))/4
             log_std = (np.log(max_loss) - np.log(min_loss)) / 4
             
             attack_losses = np.random.lognormal(log_mean, log_std, n_successful_attacks)

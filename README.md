@@ -157,6 +157,14 @@ total_loss += role_loss
 
 ---
 
+### **Key Assumption: Independence of Insider Events**
+
+This Monte Carlo simulation uses a **Binomial distribution** to sample the number 
+of insiders per role, which assumes:
+
+1. Employee A becoming an insider does NOT affect Employee B's probability
+2. All employees in the same role have the same  baseline probability
+
 ## FAIR Framework Mapping
 
 | FAIR Component | Our Implementation |
