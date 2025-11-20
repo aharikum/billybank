@@ -46,11 +46,7 @@ user_had_incident = df.groupby(['user_id', 'role'])['is_malicious'].agg([
     ('had_incident', lambda x: int(x.sum() > 0))
 ]).reset_index()
 
-role_tef = (
-    user_had_incident.groupby('role')['had_incident']
-    .mean() 
-    .reindex(ROLES)
-)
+role_poa = user_had_incident.groupby('role')['had_incident'].mean().reindex(ROLES, fill_value=0.0)  # Probability of Action
 
 loss_ranges = pd.read_csv('employee_loss_ranges.csv')
 loss_dict = {}
@@ -70,7 +66,7 @@ def run_monte_carlo_simulation(mitigation_weight=0.0, n_iterations=N_ITER):
                                    0.6 = 60% reduction (30% success rate)
     
     For each iteration:
-      1. Sample number of malicious insiders per role ~ Binomial(headcount, TEF)
+      1. Sample number of malicious insiders per role ~ Binomial(headcount, poa)
       2. Sample number of attempts per insider ~ Poisson(ATTEMPTS_MEAN)
       3. Sample number of successful attacks ~ Binomial(attempts, Vulnerability * (1 - weight))
       4. Sample loss per attack => Lognormal(loss_range)
@@ -96,9 +92,9 @@ def run_monte_carlo_simulation(mitigation_weight=0.0, n_iterations=N_ITER):
         
         for role in ROLES:
             headcount = ROLE_HEADCOUNT[role]
-            tef = role_tef[role]
-            
-            n_insiders = np.random.binomial(headcount, tef)
+            poa = role_poa[role]  
+
+            n_insiders = np.random.binomial(headcount, poa)
             
             if n_insiders == 0:
                 continue

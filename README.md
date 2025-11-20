@@ -16,7 +16,7 @@ Calculate the annual probability that an employee in each role becomes a malicio
 - Role-Level Aggregation:
     Calculate the proportion of users in each role who had ≥1 incident
 
-    This becomes the annual probability (Threat Event Frequency)
+    This becomes the annual probability (Probability of Action)
 
 For example:
 ```
@@ -45,20 +45,29 @@ Will write about this more...
 
 ## Key Components
 
-### 1. **Threat Event Frequency (TEF)**
+### 1. **Probability of Action (PoA)**
 
 The probability that an employee becomes a malicious insider in a given year.
 
 - Used the `billybank_activity_updated.csv` dataset containing 240 days of simulated employee behavior
 - For each user, determined if they had at least one malicious day (`is_malicious = 1`)
-- Calculated TEF per role as: **% of users who had at least one incident**
+- Calculated PoA per role as: **% of users who had at least one incident**
 
-**Example:**
+Example:
 ```python
 # If 7 out of 700 Analysts had at least one malicious day
-TEF_Analyst = 7 / 700 = 0.01 (1%)
+PoA_Analyst = 7 / 700 = 0.01 (1%)
 ```
 
+### 1. **Threat Event Frequency (TEF)**
+Expected number of insider events per year
+
+TEF[role] = headcount[role] x PoA[role]
+
+Example:
+```python
+TEF_Analyst = 700 employees × 0.01 = 7.0 events/year
+```
 ---
 
 ### 2. **Vulnerability (V)**
@@ -116,7 +125,7 @@ The financial damage caused by a single successful attack.
 
 #### **Step 1: Sample Malicious Insiders per Role**
 ```python
-n_insiders = Binomial(headcount, TEF)
+n_insiders = Binomial(headcount, PoA)
 ```
 - Example: 700 Analysts, TEF = 1% → on average, 7 become malicious
 
@@ -152,7 +161,8 @@ total_loss += role_loss
 
 | FAIR Component | Our Implementation |
 |---------------|-------------------|
-| **Threat Event Frequency (TEF)** | % of users per role who had ≥1 malicious day (from dataset) |
+| **Probability of Action (PoA)** | % of users per role who had ≥1 malicious day |
+| **Threat Event Frequency (TEF)** | Expected insiders per year = Headcount × PoA |
 | **Vulnerability (V)** | 75% base success rate, adjusted by mitigation weight |
 | **Contact Frequency (CF)** | Poisson(3.5) attempts per insider per year |
 | **Loss Event Frequency (LEF)** | TEF × CF × V = `n_insiders × attempts × success_rate` |
