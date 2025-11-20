@@ -245,7 +245,7 @@ def generate_psychometrics(role: str):
 def hr_flag_chance(role: str) -> float:
     return {
         "C_Level":        0.0001,  # 0.01% per day - very rare for C-level
-        "Trader":         0.001,   # 0.1% per day
+        "Trader":         0.001,   
         "IT_Admin":       0.0015,
         "Analyst":        0.001,
         "Contractor":     0.002,
@@ -255,7 +255,7 @@ def hr_flag_chance(role: str) -> float:
 
 def opportunity_score(pre_row: dict) -> float:
     """
-    Role-weighted 'opportunity' from *pre-injection* behavior.
+    Role-weighted 'opportunity' from pre-injection behavior.
     Only count rare deviations: max(0, z - 2.0) so > ~97.5th percentile.
     """
     role    = pre_row["role"]
@@ -289,7 +289,7 @@ def decide_and_inject_malicious(row: dict,
     Formula: P(malicious) = base_role_prob + stress_factor × 0.0003 + opportunity_term
     where opportunity_term = 0.0001 × opportunity_score(pre)
     """
-    # --- Human/HR stress (kept tiny to maintain realistic rates) ---
+    # Human/HR stress 
     stress_factor = 0
     if neuroticism > 65:
         stress_factor += 1
@@ -299,20 +299,13 @@ def decide_and_inject_malicious(row: dict,
         stress_factor += 1
 
     # Base daily probabilities calibrated for realistic annual rates
-    # These produce approximately:
-    # - C_Level: ~1.2% annual
-    # - Trader: ~2.4% annual
-    # - IT_Admin: ~3.6% annual (highest risk)
-    # - Analyst: ~1.9% annual
-    # - Contractor: ~4.8% annual (highest risk - temporary staff)
-    # - Exec_Assistant: ~2.4% annual
     base_role_prob = {
-        "C_Level":        0.00005,  # 0.005% per day → ~1.2% annual
-        "Trader":         0.00010,  # 0.01% per day → ~2.4% annual
-        "IT_Admin":       0.00015,  # 0.015% per day → ~3.6% annual
-        "Analyst":        0.00008,  # 0.008% per day → ~1.9% annual
-        "Contractor":     0.00020,  # 0.02% per day → ~4.8% annual
-        "Exec_Assistant": 0.00010,  # 0.01% per day → ~2.4% annual
+        "C_Level":        0.00005,  
+        "Trader":         0.00010,  
+        "IT_Admin":       0.00015,  # highest risk
+        "Analyst":        0.00008,  
+        "Contractor":     0.00020,  # highest risk - temporary staff
+        "Exec_Assistant": 0.00010,  
     }[row["role"]]
 
     opp = opportunity_score(row)      # usually 0, occasionally >0 on tail days
@@ -445,29 +438,6 @@ role_stats = df.groupby("role").agg({
 role_stats.columns = ["role", "malicious_days", "total_days"]
 role_stats["annual_rate"] = (role_stats["malicious_days"] / role_stats["total_days"]) * 100
 
-print("\n" + "="*70)
-print("DATASET GENERATION COMPLETE")
-print("="*70)
-print(f"\nTotal rows: {len(df):,}")
-print(f"Total users: {total_users:,}")
-print(f"Days per user: {total_days}")
-print(f"Total malicious days: {malicious_count:,}")
-print(f"Overall malicious rate: {(malicious_count/total_observations)*100:.3f}%")
-print(f"Approximate annual rate: {(malicious_count/total_observations)*100*240:.2f}%")
-
-print("\n" + "-"*70)
-print("PER-ROLE ANNUAL RATES (Expected: 0.8-3% for most roles)")
-print("-"*70)
-print(f"{'Role':<20} {'Malicious Days':>15} {'Total Days':>12} {'Annual %':>10}")
-print("-"*70)
-for _, row in role_stats.iterrows():
-    print(f"{row['role']:<20} {int(row['malicious_days']):>15,} {int(row['total_days']):>12,} {row['annual_rate']:>9.2f}%")
-print("="*70)
-
 # Save to CSV
 output_file = "billybank_activity_updated.csv"
 df.to_csv(output_file, index=False)
-print(f"\nDataset saved to: {output_file}")
-print("\nNote: These are DAILY probabilities in the dataset.")
-print("The linear regression model will aggregate these to annual probabilities.")
-print("="*70)

@@ -9,11 +9,13 @@ Calculate the annual probability that an employee in each role becomes a malicio
 
 - User-Level Aggregation:
     For each user, determine if they had at least one malicious day across the 240-day period
+
     Binary outcome: had_incident = 1 if is_malicious.sum() > 0, else 0
 
 
 - Role-Level Aggregation:
     Calculate the proportion of users in each role who had ≥1 incident
+
     This becomes the annual probability (Threat Event Frequency)
 
 For example:
@@ -47,7 +49,6 @@ Will write about this more...
 
 The probability that an employee becomes a malicious insider in a given year.
 
-**How we calculated it:**
 - Used the `billybank_activity_updated.csv` dataset containing 240 days of simulated employee behavior
 - For each user, determined if they had at least one malicious day (`is_malicious = 1`)
 - Calculated TEF per role as: **% of users who had at least one incident**
@@ -64,7 +65,6 @@ TEF_Analyst = 7 / 700 = 0.01 (1%)
 
 The probability that a malicious insider's attack attempt succeeds.
 
-**How we calculated it:**
 - **Base vulnerability = 75%** (industry standard for insiders who already have legitimate access)
 - **With mitigation:** `Effective Vulnerability = 0.75 × (1 - mitigation_weight)`
   - Example: 60% mitigation → `0.75 × (1 - 0.6) = 0.30 (30%)`
@@ -77,11 +77,10 @@ Insiders bypass many perimeter controls, so their success rate is naturally high
 
 How many attack attempts a malicious insider makes per year.
 
-**How we calculated it:**
 - Used a **Poisson distribution** with mean = 3.5 attempts/year
 - Rationale: Insiders don't continuously attack; they wait for opportune moments (e.g., before resignation, during stressful periods)
 
-**Why Poisson?** It models rare, independent events over time—perfect for sporadic insider attacks.
+**Why Poisson?** It models rare, independent events over time.
 
 ---
 
@@ -107,7 +106,7 @@ The financial damage caused by a single successful attack.
   - `log_std = (log(max_loss) - log(min_loss)) / 4`
   - Clipped values to stay within [min, max]
 
-**Why Lognormal?** Financial losses are right-skewed—most incidents cause moderate damage, but catastrophic events (e.g., 1MDB scandal, JPM London Whale) create extreme outliers.
+**Why Lognormal?** Financial losses are right-skewed. Most incidents cause moderate damage, but catastrophic events create extreme outliers.
 
 ---
 

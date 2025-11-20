@@ -60,10 +60,6 @@ for _, row in loss_ranges.iterrows():
         'max': row['Max Loss (USD)']
     }
 
-# =====================================================
-# MONTE CARLO SIMULATION WITH MITIGATION WEIGHT
-# =====================================================
-
 def run_monte_carlo_simulation(mitigation_weight=0.0, n_iterations=N_ITER):
     """
     Monte Carlo using FAIR Framework with mitigation weight
